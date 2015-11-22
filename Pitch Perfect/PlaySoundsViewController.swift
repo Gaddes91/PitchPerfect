@@ -12,17 +12,20 @@ import AVFoundation
 class PlaySoundsViewController: UIViewController {
 
     var audioPlayer: AVAudioPlayer!
+    var receivedAudio: RecordedAudio!
+    
+    var audioEngine:AVAudioEngine!
+    var audioFile:AVAudioFile!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let filePath = NSBundle.mainBundle().URLForResource("movie_quote", withExtension: "mp3") {
-            
-            // Create instance of AVAudioPlayer
-            audioPlayer = try! AVAudioPlayer(contentsOfURL: filePath)
-            audioPlayer.enableRate = true
-            
-        } else { print("Filepath not found.") }
+        // Create instance of AVAudioPlayer
+        audioPlayer = try! AVAudioPlayer(contentsOfURL: receivedAudio.filePathUrl)
+        audioPlayer.enableRate = true
+        
+        audioEngine = AVAudioEngine()
+        audioFile = try! AVAudioFile(forReading: receivedAudio.filePathUrl)
     }
 
     override func didReceiveMemoryWarning() {
@@ -31,23 +34,66 @@ class PlaySoundsViewController: UIViewController {
     }
     
     @IBAction func playbackSlow(sender: UIButton) {
-        // Play audio sloooowly here...
-        audioPlayer.stop()
-        audioPlayer.rate = 0.5
-        audioPlayer.prepareToPlay()
         
-        audioPlayer.play()
+        let slowPlayer = playbackSetup(audioPlayer)
+        
+        slowPlayer.rate = 0.5
+        slowPlayer.play()
     }
     
     @IBAction func playbackFast(sender: UIButton) {
-        // Play audio quickly here...
-        audioPlayer.stop()
-        audioPlayer.rate = 2.0
-        audioPlayer.prepareToPlay()
         
-        audioPlayer.play()      
+        let fastPlayer = playbackSetup(audioPlayer)
+        
+        fastPlayer.rate = 2.0
+        fastPlayer.play()
     }
 
+    @IBAction func stopPlayback(sender: UIButton) {
+        audioPlayer.stop()
+    }
+    
+    // Use abstraction to cut down code in playbackSlow and playbackFast -> create a new function to hold duplicate code
+    func playbackSetup(player: AVAudioPlayer) -> AVAudioPlayer {
+        
+        player.stop()
+        player.currentTime = 0
+        player.prepareToPlay()
+        
+        return player
+    }
+    
+    @IBAction func playChipmunkAudio(sender: UIButton) {
+        
+        playAudioWithVariablePitch(1000)
+    }
+    
+    @IBAction func playDarthVaderAudio(sender: UIButton) {
+        
+        playAudioWithVariablePitch(-1000)
+    }
+    
+    func playAudioWithVariablePitch(pitch: Float){
+        audioPlayer.stop()
+        audioEngine.stop()
+        audioEngine.reset()
+        
+        let audioPlayerNode = AVAudioPlayerNode()
+        audioEngine.attachNode(audioPlayerNode)
+        
+        let changePitchEffect = AVAudioUnitTimePitch()
+        changePitchEffect.pitch = pitch
+        audioEngine.attachNode(changePitchEffect)
+        
+        audioEngine.connect(audioPlayerNode, to: changePitchEffect, format: nil)
+        audioEngine.connect(changePitchEffect, to: audioEngine.outputNode, format: nil)
+        
+        audioPlayerNode.scheduleFile(audioFile, atTime: nil, completionHandler: nil)
+        try! audioEngine.start()
+        
+        audioPlayerNode.play()
+    }
+    
     /*
     // MARK: - Navigation
 
