@@ -415,7 +415,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = "Pitch Perfect/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "Me.Pitch-Perfect";
+				PRODUCT_BUNDLE_IDENTIFIER = "Me.Pitch-Perfect-MG";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -427,7 +427,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = "Pitch Perfect/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "Me.Pitch-Perfect";
+				PRODUCT_BUNDLE_IDENTIFIER = "Me.Pitch-Perfect-MG";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
