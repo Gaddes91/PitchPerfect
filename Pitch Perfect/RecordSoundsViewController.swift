@@ -12,23 +12,29 @@ import AVFoundation
 class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
 
     @IBOutlet weak var recordingLabel: UILabel!
+    @IBOutlet weak var recordingEllipsis: UILabel!
     @IBOutlet weak var recordButton: UIButton!
     @IBOutlet weak var stopButton: UIButton!
     
     var audioRecorder: AVAudioRecorder!
     var recordedAudio: RecordedAudio!
     
+    // Initialise timer to be used for ellipsis animation
+    var timer = NSTimer()
+    var arrayIndex = 0
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
 
     override func viewWillAppear(animated: Bool) {
+        recordingEllipsis.hidden = true
         stopButton.hidden = true
     }
     
@@ -39,7 +45,12 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
         // Show stop button
         stopButton.hidden = false
         // Show text "recording in progress"
-        recordingLabel.hidden = false
+        recordingLabel.text = "Recording in progress"
+        // Show ellipsis
+        recordingEllipsis.hidden = false
+        
+        // Start timer - animate ellipsis
+        timer = NSTimer.scheduledTimerWithTimeInterval(0.5, target: self, selector: Selector("pulseRecordingLabel"), userInfo: nil, repeats: true)
         
         // Record the user's voice
         let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as String
@@ -47,7 +58,6 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
         let recordingName = "my_audio.wav"
         let pathArray = [dirPath, recordingName]
         let filePath = NSURL.fileURLWithPathComponents(pathArray)
-        print(filePath)
         
         let session = AVAudioSession.sharedInstance()
         try! session.setCategory(AVAudioSessionCategoryPlayAndRecord)
@@ -85,12 +95,16 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
             let data = sender as! RecordedAudio
             playSoundsVC.receivedAudio = data
         }
-        
     }
     
     @IBAction func stopAudio(sender: UIButton) {
         
-        recordingLabel.hidden = true
+        // Invalidate timer - stop animating ellipsis
+        timer.invalidate()
+        // Revert text label
+        recordingLabel.text = "Tap to record"
+        // Hide ellipsis
+        recordingEllipsis.hidden = true
         // Hide stop button
         stopButton.hidden = true
         // Show record button
@@ -102,5 +116,22 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
         try! audioSession.setActive(false)
     }
     
+    
+    // Function for use with timer
+    func pulseRecordingLabel() {
+        
+        let array = [".", "..", "...", ""]
+        
+        // Ensure counter does not go "out of bounds"
+        if arrayIndex >= array.count {
+            arrayIndex = 0
+        } else {
+            // Update label text
+            self.recordingEllipsis.text = array[arrayIndex]
+            
+            // Increment counter
+            ++arrayIndex
+        }
+    }
 }
 

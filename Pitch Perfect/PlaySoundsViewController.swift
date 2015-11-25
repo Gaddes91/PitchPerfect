@@ -17,6 +17,20 @@ class PlaySoundsViewController: UIViewController {
     var audioEngine:AVAudioEngine!
     var audioFile:AVAudioFile!
     
+    var durationOfRecording = 0.0
+    
+    // Playback buttons
+    @IBOutlet weak var slowButton: UIButton!
+    @IBOutlet weak var fastButton: UIButton!
+    @IBOutlet weak var chipmunkButton: UIButton!
+    @IBOutlet weak var darthVaderButton: UIButton!
+    
+    // Playback labels
+    @IBOutlet weak var slowLabel: UILabel!
+    @IBOutlet weak var fastLabel: UILabel!
+    @IBOutlet weak var chipmunkLabel: UILabel!
+    @IBOutlet weak var darthVaderLabel: UILabel!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -24,10 +38,20 @@ class PlaySoundsViewController: UIViewController {
         audioPlayer = try! AVAudioPlayer(contentsOfURL: receivedAudio.filePathUrl)
         audioPlayer.enableRate = true
         
+        // Store length of recording (in seconds)
+        durationOfRecording = audioPlayer.duration
+        
         audioEngine = AVAudioEngine()
         audioFile = try! AVAudioFile(forReading: receivedAudio.filePathUrl)
     }
-
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(true)
+        
+        // Set title of PlaySoundsViewController
+        self.title = "Playback"
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -35,25 +59,81 @@ class PlaySoundsViewController: UIViewController {
     
     @IBAction func playbackSlow(sender: UIButton) {
         
+        // Enable all buttons and labels
+        resetPlaybackButtons()
+        
+        // Disable (grey out) button and label beneath
+        sender.enabled = false
+        slowLabel.enabled = false
+        
         let slowPlayer = playbackSetup(audioPlayer)
         
         slowPlayer.rate = 0.5
         slowPlayer.play()
+        
+        // Enable label once playback has finished.
+        // Duration of recording must be multiplied by 2, since the playback has been slowed and will take twice as long.
+        delay(durationOfRecording * 2) {
+            sender.enabled = true
+            self.slowLabel.enabled = true
+        }
     }
     
     @IBAction func playbackFast(sender: UIButton) {
+        
+        resetPlaybackButtons()
+        
+        sender.enabled = false
+        fastLabel.enabled = false
         
         let fastPlayer = playbackSetup(audioPlayer)
         
         fastPlayer.rate = 2.0
         fastPlayer.play()
+        
+        delay(durationOfRecording / 2) {
+            sender.enabled = true
+            self.fastLabel.enabled = true
+        }
     }
 
-    @IBAction func stopPlayback(sender: UIButton) {
-        audioPlayer.stop()
+    @IBAction func playChipmunkAudio(sender: UIButton) {
+        
+        resetPlaybackButtons()
+        
+        sender.enabled = false
+        chipmunkLabel.enabled = false
+        
+        playAudioWithVariablePitch(1000)
+        
+        delay(durationOfRecording) {
+            sender.enabled = true
+            self.chipmunkLabel.enabled = true
+        }
     }
     
-    // Use abstraction to cut down code in playbackSlow and playbackFast -> create a new function to hold duplicate code
+    @IBAction func playDarthVaderAudio(sender: UIButton) {
+        
+        resetPlaybackButtons()
+        
+        sender.enabled = false
+        darthVaderLabel.enabled = false
+        
+        playAudioWithVariablePitch(-1000)
+        
+        delay(durationOfRecording) {
+            sender.enabled = true
+            self.darthVaderLabel.enabled = true
+        }
+    }
+    
+    @IBAction func stopPlayback(sender: UIButton) {
+        
+        audioPlayer.stop()
+        resetPlaybackButtons()
+    }
+    
+    // Use abstraction to cut down code in playbackSlow and playbackFast -> this new function holds reusable code
     func playbackSetup(player: AVAudioPlayer) -> AVAudioPlayer {
         
         player.stop()
@@ -63,14 +143,19 @@ class PlaySoundsViewController: UIViewController {
         return player
     }
     
-    @IBAction func playChipmunkAudio(sender: UIButton) {
+    func resetPlaybackButtons() {
         
-        playAudioWithVariablePitch(1000)
-    }
-    
-    @IBAction func playDarthVaderAudio(sender: UIButton) {
+        // Reset buttons
+        slowButton.enabled = true
+        fastButton.enabled = true
+        chipmunkButton.enabled = true
+        darthVaderButton.enabled = true
         
-        playAudioWithVariablePitch(-1000)
+        // Reset labels
+        slowLabel.enabled = true
+        fastLabel.enabled = true
+        chipmunkLabel.enabled = true
+        darthVaderLabel.enabled = true
     }
     
     func playAudioWithVariablePitch(pitch: Float){
@@ -92,6 +177,18 @@ class PlaySoundsViewController: UIViewController {
         try! audioEngine.start()
         
         audioPlayerNode.play()
+    }
+    
+    // TODO: reference StackOverflow page using proper comments
+    // http://stackoverflow.com/questions/24034544/dispatch-after-gcd-in-swift
+    // TODO: place this function in MODEL?
+    func delay(delay:Double, closure:()->()) {
+        dispatch_after(
+            dispatch_time(
+                DISPATCH_TIME_NOW,
+                Int64(delay * Double(NSEC_PER_SEC))
+            ),
+            dispatch_get_main_queue(), closure)
     }
     
     /*
