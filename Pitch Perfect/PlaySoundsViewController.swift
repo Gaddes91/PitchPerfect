@@ -52,6 +52,13 @@ class PlaySoundsViewController: UIViewController {
         self.title = "Playback"
     }
     
+    override func viewWillDisappear(animated: Bool) {
+        super.viewWillDisappear(true)
+        
+        // Stop audio when "back" button is pressed
+        stopPlayback()
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -59,8 +66,8 @@ class PlaySoundsViewController: UIViewController {
     
     @IBAction func playbackSlow(sender: UIButton) {
         
-        // Enable all buttons and labels
-        resetPlaybackButtons()
+        // Stop current playback. This will also reset (enable) all buttons and labels
+        stopPlayback()
         
         // Disable (grey out) button and label beneath
         sender.enabled = false
@@ -81,7 +88,7 @@ class PlaySoundsViewController: UIViewController {
     
     @IBAction func playbackFast(sender: UIButton) {
         
-        resetPlaybackButtons()
+        stopPlayback()
         
         sender.enabled = false
         fastLabel.enabled = false
@@ -99,7 +106,7 @@ class PlaySoundsViewController: UIViewController {
 
     @IBAction func playChipmunkAudio(sender: UIButton) {
         
-        resetPlaybackButtons()
+        stopPlayback()
         
         sender.enabled = false
         chipmunkLabel.enabled = false
@@ -114,7 +121,7 @@ class PlaySoundsViewController: UIViewController {
     
     @IBAction func playDarthVaderAudio(sender: UIButton) {
         
-        resetPlaybackButtons()
+        stopPlayback()
         
         sender.enabled = false
         darthVaderLabel.enabled = false
@@ -129,7 +136,17 @@ class PlaySoundsViewController: UIViewController {
     
     @IBAction func stopPlayback(sender: UIButton) {
         
+        // When the "stop" button is pressed, call the function stopPlayback below
+        stopPlayback()
+    }
+    
+    // This function is identical to the one above, but it can be called from within another function (it does not rely on a UIButton press)
+    func stopPlayback() {
+        
+        // Stop audio playback
         audioPlayer.stop()
+        // This is required to stop both Chipmunk and Darth Vader audio (since they do not directly use audioPlayer()
+        audioEngine.stop()
         resetPlaybackButtons()
     }
     
@@ -179,9 +196,10 @@ class PlaySoundsViewController: UIViewController {
         audioPlayerNode.play()
     }
     
-    // TODO: reference StackOverflow page using proper comments
+    // The delay() function has been taken from the StackOverflow page linked below
     // http://stackoverflow.com/questions/24034544/dispatch-after-gcd-in-swift
     // TODO: place this function in MODEL?
+    // TODO: replace this function with NSTimer?
     func delay(delay:Double, closure:()->()) {
         dispatch_after(
             dispatch_time(
