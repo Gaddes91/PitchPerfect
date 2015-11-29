@@ -3,6 +3,7 @@ Udacity - Intro to iOS App Development with Swift
 
 ## Details
 This app records the user's voice and saves to a temporary file. This recording can then be played back using a number of effects.
+
 Current effects:
 - fast
 - slow
